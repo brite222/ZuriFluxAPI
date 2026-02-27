@@ -1,0 +1,6 @@
+@ZuriFluxAPI_HostAddress = http://localhost:5150
+
+GET {{ZuriFluxAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
