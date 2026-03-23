@@ -12,10 +12,11 @@ public class ZuriFluxDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<WasteCollection> WasteCollections { get; set; }
     public DbSet<CreditTransaction> CreditTransactions { get; set; }
+    public DbSet<CollectionSchedule> CollectionSchedules { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Define relationships clearly
+        // Existing relationships
         modelBuilder.Entity<SensorReading>()
             .HasOne(s => s.Bin)
             .WithMany(b => b.SensorReadings)
@@ -25,5 +26,30 @@ public class ZuriFluxDbContext : DbContext
             .HasOne(w => w.Bin)
             .WithMany()
             .HasForeignKey(w => w.BinId);
+
+        // Fix for self-referencing User table
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.ReferredBy)
+            .WithMany()
+            .HasForeignKey(u => u.ReferredByUserId)
+            .OnDelete(DeleteBehavior.NoAction);  // ← this fixes the error
+                                                 // Collection Schedule relationships
+        modelBuilder.Entity<CollectionSchedule>()
+            .HasOne(cs => cs.Bin)
+            .WithMany()
+            .HasForeignKey(cs => cs.BinId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<CollectionSchedule>()
+            .HasOne(cs => cs.RequestedBy)
+            .WithMany()
+            .HasForeignKey(cs => cs.RequestedByUserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<CollectionSchedule>()
+            .HasOne(cs => cs.AssignedCollector)
+            .WithMany()
+            .HasForeignKey(cs => cs.AssignedCollectorId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

@@ -23,5 +23,7 @@ namespace ZuriFluxAPI.Services
 
         public async Task<CreditAnalyticsDto> GetCreditAnalyticsAsync()
             => await _analyticsRepository.GetCreditAnalyticsAsync();
+        public async Task<LeaderboardDto> GetLeaderboardAsync(int topCount)
+    => await _analyticsRepository.GetLeaderboardAsync(topCount);
     }
 }

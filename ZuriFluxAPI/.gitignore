@@ -1,0 +1,28 @@
+﻿# Build outputs
+bin/
+obj/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Firebase credentials - NEVER push this
+firebase-credentials.json
+
+# Local settings - contains real DB password and JWT secret
+appsettings.Development.json
+
+# NuGet packages
+*.nupkg
+packages/
+project.lock.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

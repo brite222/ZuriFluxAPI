@@ -17,6 +17,7 @@ public class RegisterDto
     [RegularExpression("^(citizen|collector|admin)$",
         ErrorMessage = "Role must be citizen, collector, or admin.")]
     public string Role { get; set; } = "citizen";
+    public string? ReferralCode { get; set; }
 }
 
 public class LoginDto
@@ -46,6 +47,8 @@ public class UserResponseDto
     public string Email { get; set; }
     public string Role { get; set; }
     public int CreditBalance { get; set; }
+    public string ReferralCode { get; set; }    // their own code to share
+    public int TotalReferrals { get; set; }     // how many they've referred
     public DateTime CreatedAt { get; set; }
 }
 

@@ -35,5 +35,10 @@ namespace ZuriFluxAPI.Repositories
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }
+            public async Task<User> GetByReferralCodeAsync(string referralCode)
+            {
+                return await _context.Users
+                    .FirstOrDefaultAsync(u => u.ReferralCode == referralCode);
+            }
     }
 }

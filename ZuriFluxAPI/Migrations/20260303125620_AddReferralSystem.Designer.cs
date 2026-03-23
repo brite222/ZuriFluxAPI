@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ZuriFluxAPI.Migrations
 {
     [DbContext(typeof(ZuriFluxDbContext))]
-    partial class ZuriFluxDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260303125620_AddReferralSystem")]
+    partial class AddReferralSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -55,52 +58,6 @@ namespace ZuriFluxAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Bins");
-                });
-
-            modelBuilder.Entity("ZuriFluxAPI.Models.CollectionSchedule", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("AssignedCollectorId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("BinId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Notes")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("RequestedByUserId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("ScheduledDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TimeSlot")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssignedCollectorId");
-
-                    b.HasIndex("BinId");
-
-                    b.HasIndex("RequestedByUserId");
-
-                    b.ToTable("CollectionSchedules");
                 });
 
             modelBuilder.Entity("ZuriFluxAPI.Models.CreditTransaction", b =>
@@ -241,32 +198,6 @@ namespace ZuriFluxAPI.Migrations
                     b.HasIndex("CollectorId");
 
                     b.ToTable("WasteCollections");
-                });
-
-            modelBuilder.Entity("ZuriFluxAPI.Models.CollectionSchedule", b =>
-                {
-                    b.HasOne("ZuriFluxAPI.Models.User", "AssignedCollector")
-                        .WithMany()
-                        .HasForeignKey("AssignedCollectorId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("ZuriFluxAPI.Models.Bin", "Bin")
-                        .WithMany()
-                        .HasForeignKey("BinId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("ZuriFluxAPI.Models.User", "RequestedBy")
-                        .WithMany()
-                        .HasForeignKey("RequestedByUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("AssignedCollector");
-
-                    b.Navigation("Bin");
-
-                    b.Navigation("RequestedBy");
                 });
 
             modelBuilder.Entity("ZuriFluxAPI.Models.CreditTransaction", b =>

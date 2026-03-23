@@ -160,6 +160,69 @@ namespace ZuriFluxAPI.Repositories
                 TotalUsersWithCredits = usersWithCredits,
                 TopCitizens = topCitizens
             };
+
+        }
+        public async Task<LeaderboardDto> GetLeaderboardAsync(int topCount = 10)
+        {
+            // Top citizens by credit balance
+            var topCitizens = await _context.Users
+                .Where(u => u.Role == "citizen")
+                .OrderByDescending(u => u.CreditBalance)
+                .Take(topCount)
+                .ToListAsync();
+
+            // Top collectors by completed pickups
+            var topCollectors = await _context.Users
+                .Where(u => u.Role == "collector")
+                .Select(u => new
+                {
+                    User = u,
+                    TotalPickups = _context.WasteCollections
+                        .Count(wc => wc.CollectorId == u.Id
+                            && wc.Status == "completed"),
+                    ScheduledPickups = _context.CollectionSchedules
+                        .Count(cs => cs.AssignedCollectorId == u.Id
+                            && cs.Status == "completed"),
+                    TotalCreditsEarned = _context.CreditTransactions
+                        .Where(ct => ct.UserId == u.Id && ct.Amount > 0)
+                        .Sum(ct => (int?)ct.Amount) ?? 0
+                })
+                .OrderByDescending(c => c.TotalPickups)
+                .Take(topCount)
+                .ToListAsync();
+
+            // Build citizen leaderboard with rank
+            var citizenLeaderboard = topCitizens
+                .Select((u, index) => new CitizenLeaderboardDto
+                {
+                    Rank = index + 1,
+                    UserId = u.Id,
+                    FullName = u.FullName,
+                    CreditBalance = u.CreditBalance,
+                    TotalReferrals = u.TotalReferrals,
+                    MemberSince = u.CreatedAt
+                })
+                .ToList();
+
+            // Build collector leaderboard with rank
+            var collectorLeaderboard = topCollectors
+                .Select((c, index) => new CollectorLeaderboardDto
+                {
+                    Rank = index + 1,
+                    UserId = c.User.Id,
+                    FullName = c.User.FullName,
+                    TotalPickups = c.TotalPickups,
+                    ScheduledPickups = c.ScheduledPickups,
+                    TotalCreditsEarned = c.TotalCreditsEarned
+                })
+                .ToList();
+
+            return new LeaderboardDto
+            {
+                TopCitizens = citizenLeaderboard,
+                TopCollectors = collectorLeaderboard,
+                GeneratedAt = DateTime.UtcNow
+            };
         }
     }
 }

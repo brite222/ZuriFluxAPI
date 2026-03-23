@@ -13,21 +13,22 @@
     {
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
-
-        public AuthService(IUserRepository userRepository, IConfiguration configuration)
+        private readonly ICreditRepository _creditRepository;
+        public AuthService(IUserRepository userRepository, IConfiguration configuration, ICreditRepository creditRepository)
         {
             _userRepository = userRepository;
             _configuration = configuration;
+            _creditRepository = creditRepository;
         }
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
         {
-            // Check if email already exists
             var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
             if (existingUser != null)
                 throw new Exception("A user with this email already exists.");
 
-            // Hash the password before saving
+            var referralCode = GenerateReferralCode(dto.FullName);
+
             var user = new User
             {
                 FullName = dto.FullName,
@@ -35,12 +36,55 @@
                 PasswordHash = BCrypt.HashPassword(dto.Password),
                 Role = dto.Role ?? "citizen",
                 CreditBalance = 0,
+                ReferralCode = referralCode,
+                TotalReferrals = 0,
                 CreatedAt = DateTime.UtcNow
             };
 
+            // Check referral code BEFORE saving user
+            User referrer = null;
+            if (!string.IsNullOrEmpty(dto.ReferralCode))
+            {
+                referrer = await _userRepository
+                    .GetByReferralCodeAsync(dto.ReferralCode);
+
+                if (referrer != null && referrer.Email != dto.Email.ToLower())
+                {
+                    // Give new user welcome bonus
+                    user.CreditBalance = 20;
+                }
+            }
+
+            // Save the user FIRST so they get an ID
             var created = await _userRepository.CreateAsync(user);
 
-            // Generate token immediately so they're logged in after registering
+            // NOW handle referral transactions (user has ID now)
+            if (referrer != null)
+            {
+                // Award referrer
+                referrer.CreditBalance += 50;
+                referrer.TotalReferrals += 1;
+                await _userRepository.UpdateAsync(referrer);
+
+                // Log referrer's transaction
+                await _creditRepository.CreateAsync(new CreditTransaction
+                {
+                    UserId = referrer.Id,
+                    Amount = 50,
+                    Reason = $"Referral bonus — referred {dto.FullName}",
+                    TransactedAt = DateTime.UtcNow
+                });
+
+                // Log new user's welcome transaction
+                await _creditRepository.CreateAsync(new CreditTransaction
+                {
+                    UserId = created.Id,   // ← now has a valid ID
+                    Amount = 20,
+                    Reason = "Welcome bonus — joined via referral",
+                    TransactedAt = DateTime.UtcNow
+                });
+            }
+
             var token = GenerateJwtToken(created);
 
             return new AuthResponseDto
@@ -51,7 +95,6 @@
                 Role = created.Role
             };
         }
-
         public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
         {
             // Find user by email
@@ -87,6 +130,8 @@
                 Email = user.Email,
                 Role = user.Role,
                 CreditBalance = user.CreditBalance,
+                ReferralCode = user.ReferralCode,       // ← add
+                TotalReferrals = user.TotalReferrals,   // ← add
                 CreatedAt = user.CreatedAt
             };
         }
@@ -119,5 +164,15 @@
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        private string GenerateReferralCode(string fullName)
+        {
+            var namePart = fullName.Split(' ')[0].ToUpper()
+                .Substring(0, Math.Min(5, fullName.Split(' ')[0].Length));
+            var randomPart = Guid.NewGuid().ToString("N")
+                .Substring(0, 4).ToUpper();
+            return $"{namePart}{randomPart}";
+        }
     }
+
 }

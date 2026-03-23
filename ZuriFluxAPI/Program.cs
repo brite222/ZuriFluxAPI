@@ -20,14 +20,14 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICollectionRepository, CollectionRepository>();
 builder.Services.AddScoped<ICreditRepository, CreditRepository>();
 builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
-
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
 // ── Services ──────────────────────────────────────────
 builder.Services.AddScoped<IBinService, BinService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICollectionService, CollectionService>();
 builder.Services.AddScoped<ICreditService, CreditService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
-
+builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 // ── JWT Authentication ─────────────────────────────────
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var key = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);

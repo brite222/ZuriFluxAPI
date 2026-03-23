@@ -66,4 +66,28 @@ public class AuthController : ControllerBase
         if (user == null) return NotFound();
         return Ok(user);
     }
+
+
+    /// <summary>
+    /// Get current user's referral code and stats
+    /// </summary>
+    /// <remarks>Share your referral code with friends — earn 50 credits per referral</remarks>
+    [HttpGet("referral")]
+    [Authorize]
+    public async Task<IActionResult> GetReferralInfo()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null) return Unauthorized();
+
+        var user = await _authService.GetUserByIdAsync(int.Parse(userIdClaim));
+        if (user == null) return NotFound();
+
+        return Ok(new
+        {
+            referralCode = user.ReferralCode,
+            totalReferrals = user.TotalReferrals,
+            creditsEarnedFromReferrals = user.TotalReferrals * 50,
+            shareMessage = $"Join ZuriFlux and help clean Lagos! Use my code {user.ReferralCode} when registering to get 20 bonus credits!"
+        });
+    }
 }

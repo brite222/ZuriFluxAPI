@@ -70,4 +70,34 @@
         public int CreditBalance { get; set; }
         public int TotalTransactions { get; set; }
     }
+
+    // Full leaderboard response
+    public class LeaderboardDto
+    {
+        public List<CitizenLeaderboardDto> TopCitizens { get; set; }
+        public List<CollectorLeaderboardDto> TopCollectors { get; set; }
+        public DateTime GeneratedAt { get; set; }
+    }
+
+    // Single citizen entry
+    public class CitizenLeaderboardDto
+    {
+        public int Rank { get; set; }
+        public int UserId { get; set; }
+        public string FullName { get; set; }
+        public int CreditBalance { get; set; }
+        public int TotalReferrals { get; set; }
+        public DateTime MemberSince { get; set; }
+    }
+
+    // Single collector entry
+    public class CollectorLeaderboardDto
+    {
+        public int Rank { get; set; }
+        public int UserId { get; set; }
+        public string FullName { get; set; }
+        public int TotalPickups { get; set; }
+        public int ScheduledPickups { get; set; }
+        public int TotalCreditsEarned { get; set; }
+    }
 }

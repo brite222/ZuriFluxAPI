@@ -8,5 +8,6 @@ namespace ZuriFluxAPI.Services
         Task<BinAnalyticsDto> GetBinAnalyticsAsync();
         Task<CollectionAnalyticsDto> GetCollectionAnalyticsAsync();
         Task<CreditAnalyticsDto> GetCreditAnalyticsAsync();
+        Task<LeaderboardDto> GetLeaderboardAsync(int topCount);
     }
 }
