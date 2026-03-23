@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ZuriFluxAPI.Models;
 
+namespace ZuriFluxAPI.Data;
 public class ZuriFluxDbContext : DbContext
 {
     public ZuriFluxDbContext(DbContextOptions<ZuriFluxDbContext> options)
@@ -13,7 +14,7 @@ public class ZuriFluxDbContext : DbContext
     public DbSet<WasteCollection> WasteCollections { get; set; }
     public DbSet<CreditTransaction> CreditTransactions { get; set; }
     public DbSet<CollectionSchedule> CollectionSchedules { get; set; }
-
+    public DbSet<DeviceToken> DeviceTokens { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Existing relationships
@@ -51,5 +52,11 @@ public class ZuriFluxDbContext : DbContext
             .WithMany()
             .HasForeignKey(cs => cs.AssignedCollectorId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<DeviceToken>()
+        .HasOne(d => d.User)
+        .WithMany()
+        .HasForeignKey(d => d.UserId)
+        .OnDelete(DeleteBehavior.Cascade);
     }
 }

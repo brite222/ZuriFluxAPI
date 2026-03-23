@@ -3,19 +3,15 @@
     public class User
     {
         public int Id { get; set; }
-        public string FullName { get; set; }
-        public string Email { get; set; }
-        public string PasswordHash { get; set; }
-        public string Role { get; set; }            // "citizen", "admin", "collector"
-        public int CreditBalance { get; set; }      // waste tokens earned
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string PasswordHash { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public int CreditBalance { get; set; }
         public DateTime CreatedAt { get; set; }
-
-        // Referral fields
-        public string ReferralCode { get; set; }    // unique code e.g. "TUNDE123"
-        public int? ReferredByUserId { get; set; }  // who referred this user
+        public string ReferralCode { get; set; } = string.Empty;
+        public int? ReferredByUserId { get; set; }
         public int TotalReferrals { get; set; }
-        // Navigation
-        public User ReferredBy { get; set; }
-
+        public User? ReferredBy { get; set; }
     }
 }

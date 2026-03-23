@@ -6,12 +6,12 @@ using System.Reflection;
 using System.Text;
 using ZuriFluxAPI.Repositories;
 using ZuriFluxAPI.Services;
-
+using ZuriFluxAPI.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Database ──────────────────────────────────────────
 builder.Services.AddDbContext<ZuriFluxDbContext>(options =>
-    options.UseSqlServer(
+    options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ── Repositories ──────────────────────────────────────
@@ -20,17 +20,22 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICollectionRepository, CollectionRepository>();
 builder.Services.AddScoped<ICreditRepository, CreditRepository>();
 builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
-builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
+
 // ── Services ──────────────────────────────────────────
 builder.Services.AddScoped<IBinService, BinService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICollectionService, CollectionService>();
 builder.Services.AddScoped<ICreditService, CreditService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
-builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
 // ── JWT Authentication ─────────────────────────────────
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var key = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
+var secretKey = jwtSettings["SecretKey"]
+    ?? throw new InvalidOperationException("JWT SecretKey is not configured.");
+var key = Encoding.UTF8.GetBytes(secretKey);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -86,12 +91,10 @@ builder.Services.AddSwaggerGen(options =>
         Description = "AI-Powered Waste Management API for Lagos. Built by ZuriFlux GreenTech Ltd."
     });
 
-    // Pick up XML comments
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     options.IncludeXmlComments(xmlPath);
 
-    // JWT in Swagger
     options.AddSecurityDefinition("Bearer", new()
     {
         Name = "Authorization",
@@ -118,27 +121,42 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// CORS - allow frontend and mobile to call your API
+// ── CORS ───────────────────────────────────────────────
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ZuriFluxPolicy", policy =>
     {
         policy
-            .AllowAnyOrigin()     // during development - allows all
-            .AllowAnyMethod()     // GET, POST, PUT, DELETE, PATCH
-            .AllowAnyHeader();    // Authorization, Content-Type, etc.
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
     });
 });
 
 // ── Build ──────────────────────────────────────────────
 var app = builder.Build();
 
-// Order matters here
-app.UseMiddleware<ExceptionMiddleware>();  // catch all errors first
+// Auto-run migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider
+        .GetRequiredService<ZuriFluxDbContext>();
+    db.Database.Migrate();
+}
+
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseSwagger();
-app.UseSwaggerUI();
-app.UseAuthentication();                  // who are you?
-app.UseAuthorization();                   // are you allowed?
-app.MapControllers();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ZuriFlux API v1");
+});
 app.UseCors("ZuriFluxPolicy");
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+
+// Render uses PORT environment variable
+var port = Environment.GetEnvironmentVariable("PORT") ?? "7135";
+app.Urls.Add($"http://*:{port}");
+
 app.Run();

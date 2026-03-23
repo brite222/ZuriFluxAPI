@@ -2,7 +2,7 @@
 using ZuriFluxAPI.DTOs;
 using ZuriFluxAPI.Helper;
 using ZuriFluxAPI.Models;
-
+using ZuriFluxAPI.Data;
 namespace ZuriFluxAPI.Repositories
 {
     public class BinRepository : IBinRepository
@@ -22,8 +22,8 @@ namespace ZuriFluxAPI.Repositories
         public async Task<Bin> GetByIdAsync(int id)
         {
             return await _context.Bins
-                .Include(b => b.SensorReadings)  // also load related readings
-                .FirstOrDefaultAsync(b => b.Id == id);
+            .Include(b => b.SensorReadings)
+            .FirstOrDefaultAsync(b => b.Id == id) ?? new Bin();
         }
 
         public async Task<IEnumerable<Bin>> GetBinsNeedingPickupAsync()

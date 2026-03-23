@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ZuriFluxAPI.DTOs;
+using ZuriFluxAPI.Data;
 
 namespace ZuriFluxAPI.Repositories
+
 {
     public class AnalyticsRepository : IAnalyticsRepository
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ZuriFluxAPI.Models;
-
+using ZuriFluxAPI.Data;
 namespace ZuriFluxAPI.Repositories
 {
     public class UserRepository : IUserRepository

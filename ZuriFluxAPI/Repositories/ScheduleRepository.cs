@@ -2,7 +2,7 @@
 using ZuriFluxAPI.DTOs;
 using ZuriFluxAPI.Helper;
 using ZuriFluxAPI.Models;
-
+using ZuriFluxAPI.Data;
 namespace ZuriFluxAPI.Repositories
 {
     public class ScheduleRepository : IScheduleRepository

@@ -8,7 +8,7 @@
     using ZuriFluxAPI.DTOs;
     using ZuriFluxAPI.Models;
     using ZuriFluxAPI.Repositories;
-    using BCrypt.Net;
+   
     public class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepository;
